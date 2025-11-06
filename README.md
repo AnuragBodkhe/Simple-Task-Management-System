@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Task Management System
 
 A full-stack task management system built with Node.js, Express, MySQL, and Bootstrap.
@@ -69,3 +70,6 @@ task-management-system/
 - GET `/tasks/:id` - Show task details
 - POST `/tasks/:id` - Update a task
 - POST `/tasks/:id/delete` - Delete a task
+=======
+# Simple-Task-Management-System
+>>>>>>> 95afe2c70c271b3d76a03f5f750ce607e47f7b0c
