@@ -1,0 +1,175 @@
+<%- include('../layout') %>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="my-2"><i class="bi bi-plus-circle"></i> Create New Task</h4>
+            </div>
+            <div class="card-body">
+                <form action="/tasks" method="POST" class="needs-validation" novalidate>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text">
+                                    <i class="bi bi-pencil"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="title" 
+                                       name="title" 
+                                       required
+                                       minlength="3"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="top"
+                                       title="Task title should be at least 3 characters long">
+                                <div class="invalid-feedback">
+                                    Please provide a valid task title (minimum 3 characters).
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="low">
+                                    <i class="bi bi-flag text-info"></i> Low Priority
+                                </option>
+                                <option value="medium" selected>
+                                    <i class="bi bi-flag text-warning"></i> Medium Priority
+                                </option>
+                                <option value="high">
+                                    <i class="bi bi-flag text-danger"></i> High Priority
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-text-paragraph"></i>
+                            </span>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="4"
+                                      data-bs-toggle="tooltip"
+                                      data-bs-placement="top"
+                                      title="Provide detailed description of the task"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-calendar"></i>
+                                </span>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="due_date" 
+                                       name="due_date"
+                                       required
+                                       min="<%= new Date().toISOString().split('T')[0] %>">
+                                <div class="invalid-feedback">
+                                    Please select a valid future date.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Initial Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="pending" selected>Pending</option>
+                                <option value="in-progress">In Progress</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tags</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-tags"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="tags" 
+                                   name="tags"
+                                   placeholder="Enter tags separated by commas"
+                                   data-bs-toggle="tooltip"
+                                   data-bs-placement="top"
+                                   title="Add relevant tags to categorize your task">
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <a href="/tasks" class="btn btn-secondary w-100">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-check-circle"></i> Create Task
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+(function () {
+    'use strict'
+
+    var forms = document.querySelectorAll('.needs-validation')
+
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+
+// Due date validation
+document.getElementById('due_date').addEventListener('change', function(e) {
+    const selectedDate = new Date(e.target.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+        e.target.setCustomValidity('Please select a future date');
+    } else {
+        e.target.setCustomValidity('');
+    }
+});
+
+// Priority color indication
+document.getElementById('priority').addEventListener('change', function(e) {
+    const priorityColors = {
+        'low': 'text-info',
+        'medium': 'text-warning',
+        'high': 'text-danger'
+    };
+    
+    Object.keys(priorityColors).forEach(key => {
+        e.target.classList.remove(priorityColors[key]);
+    });
+    
+    e.target.classList.add(priorityColors[e.target.value]);
+});
+</script>

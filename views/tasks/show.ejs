@@ -1,0 +1,56 @@
+<%- include('../layout') %>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4"><%= task.title %></h2>
+                
+                <form action="/tasks/<%= task.id %>" method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" value="<%= task.title %>" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"><%= task.description %></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="due_date" class="form-label">Due Date</label>
+                        <input type="date" class="form-control" id="due_date" name="due_date" value="<%= task.due_date %>">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">Priority</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="low" <%= task.priority === 'low' ? 'selected' : '' %>>Low</option>
+                            <option value="medium" <%= task.priority === 'medium' ? 'selected' : '' %>>Medium</option>
+                            <option value="high" <%= task.priority === 'high' ? 'selected' : '' %>>High</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="pending" <%= task.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                            <option value="in-progress" <%= task.status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
+                            <option value="completed" <%= task.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Update Task</button>
+                        <div>
+                            <a href="/tasks" class="btn btn-secondary me-2">Back to List</a>
+                            <form action="/tasks/<%= task.id %>/delete" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
