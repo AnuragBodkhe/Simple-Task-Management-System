@@ -96,12 +96,16 @@ router.get('/new', async (req, res) => {
         res.render('tasks/new', {
             categories,
             tags,
+            formData: {}, // Initialize empty formData object
             path: req.path
         });
     } catch (error) {
         console.error('Error loading form data:', error);
         res.status(500).render('tasks/new', {
             error: 'Failed to load form data',
+            formData: {}, // Initialize empty formData object
+            categories: [],
+            tags: [],
             path: req.path
         });
     }
@@ -120,12 +124,16 @@ router.post('/', async (req, res) => {
                 error: 'Title is required',
                 formData: req.body,
                 categories,
-                tags: tagList
+                tags: tagList,
+                path: req.path
             });
         } catch (formError) {
             return res.status(500).render('tasks/new', {
                 error: 'Failed to load form data',
-                formData: req.body
+                formData: req.body,
+                categories: [],
+                tags: [],
+                path: req.path
             });
         }
     }
@@ -148,8 +156,11 @@ router.post('/', async (req, res) => {
         const taskId = result[0].id;
         
         // Handle tags if provided
-        if (tags && Array.isArray(tags)) {
-            for (const tagName of tags) {
+        if (tags && typeof tags === 'string') {
+            // Split comma-separated tags into array and trim whitespace
+            const tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+            
+            for (const tagName of tagArray) {
                 if (tagName.trim()) {
                     // Check if tag exists, if not create it
                     const [existingTag] = await db.execute('SELECT id FROM tags WHERE name = ?', [tagName.trim()]);
@@ -187,12 +198,18 @@ router.post('/', async (req, res) => {
                 error: 'Failed to create task. Please try again.',
                 formData: req.body,
                 categories,
-                tags: tagList
+                tags: tagList,
+                path: req.path
             });
         } catch (formError) {
+            const [categories] = await db.execute('SELECT * FROM categories ORDER BY name');
+            const [tagList] = await db.execute('SELECT * FROM tags ORDER BY name');
             res.status(500).render('tasks/new', {
                 error: 'Failed to create task. Please try again.',
-                formData: req.body
+                formData: req.body,
+                categories,
+                tags: tagList,
+                path: req.path
             });
         }
     }

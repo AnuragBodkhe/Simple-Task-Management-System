@@ -72,11 +72,11 @@ const initDatabase = () => {
                 
                 // Insert sample tasks
                 db.run(`INSERT INTO tasks (title, description, priority, due_date, category_id, updated_at) VALUES 
-                    ('Finish Report', 'Complete project documentation', 'high', '2025-11-10', 1, CURRENT_TIMESTAMP),
-                    ('Team Meeting', 'Weekly sync with team', 'medium', '2025-11-08', 1, CURRENT_TIMESTAMP),
-                    ('Code Review', 'Review pull request #142', 'low', '2025-11-09', 1, CURRENT_TIMESTAMP),
-                    ('Buy Groceries', 'Get items for the week', 'medium', '2025-11-07', 3, CURRENT_TIMESTAMP),
-                    ('Doctor Appointment', 'Annual health checkup', 'high', '2025-11-15', 4, CURRENT_TIMESTAMP)`);
+                    ('Finish Report', 'Complete project documentation', 'high', '2025-11-10', 1, datetime('now')),
+                    ('Team Meeting', 'Weekly sync with team', 'medium', '2025-11-08', 1, datetime('now')),
+                    ('Code Review', 'Review pull request #142', 'low', '2025-11-09', 1, datetime('now')),
+                    ('Buy Groceries', 'Get items for the week', 'medium', '2025-11-07', 3, datetime('now')),
+                    ('Doctor Appointment', 'Annual health checkup', 'high', '2025-11-15', 4, datetime('now'))`);
                 
                 // Link tags to tasks
                 db.run(`INSERT INTO task_tags (task_id, tag_id) VALUES 
@@ -94,13 +94,26 @@ const initDatabase = () => {
 // SQLite query helper functions
 const execute = (query, params = []) => {
     return new Promise((resolve, reject) => {
-        db.all(query, params, (err, rows) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve([rows]);
-            }
-        });
+        // Use db.run() for INSERT operations to get insertId
+        if (query.trim().toUpperCase().startsWith('INSERT')) {
+            db.run(query, params, function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    // Return result with insertId for INSERT operations
+                    resolve([{ id: this.lastID, changes: this.changes }]);
+                }
+            });
+        } else {
+            // Use db.all() for SELECT operations
+            db.all(query, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve([rows]);
+                }
+            });
+        }
     });
 };
 
