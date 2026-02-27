@@ -69,214 +69,355 @@
                 </div>
             </div>
         </div>
-                <h2 class="display-4"><%= tasks.filter(t => t.status === 'completed').length %></h2>
-                <p class="card-text">
-                    <i class="bi bi-check-circle"></i> Finished tasks
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Search and Filter Bar -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control" id="searchTask" placeholder="Search tasks...">
+        <!-- Advanced Statistics -->
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 bg-white shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-graph-up"></i> Priority Distribution</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="mb-2">
+                                    <span class="badge bg-danger fs-6">High</span>
+                                    <h5 class="mt-1"><%= tasks.filter(t => t.priority === 'high').length %></h5>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mb-2">
+                                    <span class="badge bg-warning fs-6">Medium</span>
+                                    <h5 class="mt-1"><%= tasks.filter(t => t.priority === 'medium').length %></h5>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mb-2">
+                                    <span class="badge bg-info fs-6">Low</span>
+                                    <h5 class="mt-1"><%= tasks.filter(t => t.priority === 'low').length %></h5>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-select" id="filterStatus">
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                        </select>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 bg-white shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-pie-chart"></i> Category Breakdown</h6>
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-select" id="filterPriority">
-                            <option value="">All Priorities</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-outline-secondary w-100" type="button" id="clearFilters">
-                            Clear Filters
-                        </button>
+                    <div class="card-body">
+                        <% 
+                            const categoryCounts = {};
+                            tasks.forEach(task => {
+                                if (task.category_name) {
+                                    categoryCounts[task.category_name] = (categoryCounts[task.category_name] || 0) + 1;
+                                }
+                            });
+                        %>
+                        <% if (Object.keys(categoryCounts).length > 0) { %>
+                            <% Object.keys(categoryCounts).forEach(categoryName => { %>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span><%= categoryName %></span>
+                                    <div class="progress" style="flex-grow: 1; height: 20px;">
+                                        <div class="progress-bar bg-info" 
+                                             style="width: <%= (categoryCounts[categoryName] / tasks.length * 100).toFixed(1) %>%">
+                                            <%= categoryCounts[categoryName] %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <p class="text-muted">No tasks with categories</p>
+                        <% } %>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Task List -->
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    <% tasks.forEach(task => { %>
-        <div class="col task-card" 
-             data-status="<%= task.status %>" 
-             data-priority="<%= task.priority %>">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center
-                            <%= task.priority === 'high' ? 'bg-danger text-white' : 
-                                (task.priority === 'medium' ? 'bg-warning' : 'bg-info text-white') %>">
-                    <span>
-                        <i class="bi bi-flag-fill"></i> <%= task.priority.charAt(0).toUpperCase() + task.priority.slice(1) %>
-                    </span>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-link text-white" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/tasks/<%= task.id %>">
-                                <i class="bi bi-pencil"></i> Edit
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form action="/tasks/<%= task.id %>/delete" method="POST">
-                                    <button type="submit" class="dropdown-item text-danger" 
-                                            onclick="return confirm('Are you sure?')">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+        <!-- Recent Activity -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card border-0 bg-white shadow-sm">
+                    <div class="card-header bg-warning text-white">
+                        <h6 class="mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h6>
                     </div>
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title text-truncate" data-bs-toggle="tooltip" 
-                        title="<%= task.title %>"><%= task.title %></h5>
-                    <p class="card-text"><%= task.description %></p>
-                    
-                    <% 
-                        let progressWidth, progressClass, progressValue;
-                        if (task.status === 'completed') {
-                            progressWidth = '100%';
-                            progressClass = 'bg-success';
-                            progressValue = '100';
-                        } else if (task.status === 'in-progress') {
-                            progressWidth = '50%';
-                            progressClass = 'bg-info';
-                            progressValue = '50';
-                        } else {
-                            progressWidth = '0%';
-                            progressClass = 'bg-secondary';
-                            progressValue = '0';
-                        }
-                    %>
-                    <div class="progress mb-3" style="height: 5px;">
-                        <div class="progress-bar <%= progressClass %>"
-                            role="progressbar" 
-                            style="width: <%= progressWidth %>; height: 100%"
-                            aria-valuenow="<%= progressValue %>"
-                            aria-valuemin="0" 
-                            aria-valuemax="100">
+                    <div class="card-body">
+                        <div class="row">
+                            <% tasks.slice(0, 5).forEach(task => { %>
+                                <div class="col-md-12 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1"><%= task.title %></h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar"></i> <%= task.due_date || 'No due date' %>
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge <%= 
+                                                task.status === 'completed' ? 'bg-success' : 
+                                                (task.status === 'in-progress' ? 'bg-info' : 'bg-secondary') %>">
+                                                <%= task.status %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
                         </div>
                     </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-<%= 
-                            task.status === 'completed' ? 'success' : 
-                            (task.status === 'in-progress' ? 'info' : 'secondary') %>">
-                            <%= task.status %>
-                        </span>
-                        <small class="text-muted">
-                            <i class="bi bi-calendar-event"></i> 
-                            <%= task.due_date %>
-                        </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-funnel"></i> Advanced Search & Filters</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="GET" action="/tasks" id="filterForm">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Search</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                        <input type="text" class="form-control" name="search" 
+                                               value="<%= filters.search || '' %>" placeholder="Search tasks...">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" name="status">
+                                        <option value="">All Status</option>
+                                        <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                        <option value="in-progress" <%= filters.status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
+                                        <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" name="category">
+                                        <option value="">All Categories</option>
+                                        <% categories.forEach(cat => { %>
+                                            <option value="<%= cat.id %>" <%= filters.category == cat.id ? 'selected' : '' %>>
+                                                <%= cat.name %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Tags</label>
+                                    <select class="form-select" name="tag">
+                                        <option value="">All Tags</option>
+                                        <% tags.forEach(tag => { %>
+                                            <option value="<%= tag.name %>" <%= filters.tag === tag.name ? 'selected' : '' %>>
+                                                <%= tag.name %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Priority</label>
+                                    <select class="form-select" name="priority">
+                                        <option value="">All Priorities</option>
+                                        <option value="low" <%= filters.priority === 'low' ? 'selected' : '' %>>Low</option>
+                                        <option value="medium" <%= filters.priority === 'medium' ? 'selected' : '' %>>Medium</option>
+                                        <option value="high" <%= filters.priority === 'high' ? 'selected' : '' %>>High</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Sort By</label>
+                                    <select class="form-select" name="sort_by">
+                                        <option value="created_at" <%= filters.sort_by === 'created_at' ? 'selected' : '' %>>Created Date</option>
+                                        <option value="due_date" <%= filters.sort_by === 'due_date' ? 'selected' : '' %>>Due Date</option>
+                                        <option value="priority" <%= filters.sort_by === 'priority' ? 'selected' : '' %>>Priority</option>
+                                        <option value="title" <%= filters.sort_by === 'title' ? 'selected' : '' %>>Title</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Order</label>
+                                    <select class="form-select" name="sort_order">
+                                        <option value="DESC" <%= filters.sort_order === 'DESC' ? 'selected' : '' %>>Descending</option>
+                                        <option value="ASC" <%= filters.sort_order === 'ASC' ? 'selected' : '' %>>Ascending</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-funnel"></i> Filter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">Due Date From</label>
+                                    <input type="date" class="form-control" name="due_from" value="<%= filters.due_from || '' %>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Due Date To</label>
+                                    <input type="date" class="form-control" name="due_to" value="<%= filters.due_to || '' %>">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <a href="/tasks" class="btn btn-outline-secondary">
+                                            <i class="bi bi-x-circle"></i> Clear All
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    <% }); %>
-</div>
 
-<!-- Quick Add Task Modal -->
-<div class="modal fade" id="quickAddTask" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Quick Add Task</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="/tasks" method="POST">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Title</label>
-                        <input type="text" class="form-control" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Priority</label>
-                        <select class="form-select" name="priority">
-                            <option value="low">Low</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Due Date</label>
-                        <input type="date" class="form-control" name="due_date">
+        <!-- Task List -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <% tasks.forEach(task => { %>
+                <div class="col task-card" 
+                     data-status="<%= task.status %>" 
+                     data-priority="<%= task.priority %>">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center
+                                    <%= task.priority === 'high' ? 'bg-danger text-white' : 
+                                        (task.priority === 'medium' ? 'bg-warning' : 'bg-info text-white') %>">
+                            <span>
+                                <i class="bi bi-flag-fill"></i> <%= task.priority.charAt(0).toUpperCase() + task.priority.slice(1) %>
+                            </span>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-link text-white" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/tasks/<%= task.id %>">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form action="/tasks/<%= task.id %>/delete" method="POST">
+                                            <button type="submit" class="dropdown-item text-danger" 
+                                                    onclick="return confirm('Are you sure?')">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title"><%= task.title %></h5>
+                            <p class="card-text"><%= task.description %></p>
+                            
+                            <% if (task.category_name) { %>
+                                <div class="mb-2">
+                                    <span class="badge" style="background-color: <%- task.category_color %>; color: white;">
+                                        <i class="bi bi-folder"></i> <%= task.category_name %>
+                                    </span>
+                                </div>
+                            <% } %>
+                            
+                            <% if (task.tags) { %>
+                                <div class="mb-2">
+                                    <% task.tags.split(',').forEach(tag => { %>
+                                        <span class="badge bg-secondary me-1">
+                                            <i class="bi bi-tag"></i> <%= tag.trim() %>
+                                        </span>
+                                    <% }); %>
+                                </div>
+                            <% } %>
+                            
+                            <% 
+                                let progressWidth, progressClass, progressValue;
+                                if (task.status === 'completed') {
+                                    progressWidth = '100%';
+                                    progressClass = 'bg-success';
+                                    progressValue = '100';
+                                } else if (task.status === 'in-progress') {
+                                    progressWidth = '50%';
+                                    progressClass = 'bg-info';
+                                    progressValue = '50';
+                                } else {
+                                    progressWidth = '0%';
+                                    progressClass = 'bg-secondary';
+                                    progressValue = '0';
+                                }
+                            %>
+                            <div class="progress mb-3" style="height: 5px;">
+                                <div class="progress-bar <%- progressClass %>"
+                                    role="progressbar" 
+                                    style="width: <%- progressWidth %>; height: 100%;"
+                                    aria-valuenow="<%= progressValue %>"
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100">
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge <%- 
+                                    task.status === 'completed' ? 'bg-success' : 
+                                    (task.status === 'in-progress' ? 'bg-info' : 'bg-secondary') %>">
+                                    <%= task.status %>
+                                </span>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar-event"></i> 
+                                    <%= task.due_date %>
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Add Task</button>
-                </div>
-            </form>
+            <% }); %>
         </div>
-    </div>
-</div>
 
-<script>
-    // Search and filter functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('searchTask');
-        const filterStatus = document.getElementById('filterStatus');
-        const filterPriority = document.getElementById('filterPriority');
-        const clearFilters = document.getElementById('clearFilters');
-        const taskCards = document.querySelectorAll('.task-card');
+        <!-- Quick Add Task Modal -->
+        <div class="modal fade" id="quickAddTask" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Quick Add Task</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="/tasks" method="POST">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Priority</label>
+                                <select class="form-select" name="priority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" class="form-control" name="due_date">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Add Task</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-        function filterTasks() {
-            const searchText = searchInput.value.toLowerCase();
-            const statusFilter = filterStatus.value.toLowerCase();
-            const priorityFilter = filterPriority.value.toLowerCase();
-
-            taskCards.forEach(card => {
-                const title = card.querySelector('.card-title').textContent.toLowerCase();
-                const description = card.querySelector('.card-text').textContent.toLowerCase();
-                const status = card.dataset.status;
-                const priority = card.dataset.priority;
-
-                const matchesSearch = title.includes(searchText) || description.includes(searchText);
-                const matchesStatus = !statusFilter || status === statusFilter;
-                const matchesPriority = !priorityFilter || priority === priorityFilter;
-
-                if (matchesSearch && matchesStatus && matchesPriority) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
+        <script>
+            // Initialize tooltips
+            document.addEventListener('DOMContentLoaded', function() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                });
             });
-        }
-
-        searchInput.addEventListener('input', filterTasks);
-        filterStatus.addEventListener('change', filterTasks);
-        filterPriority.addEventListener('change', filterTasks);
-
-        clearFilters.addEventListener('click', () => {
-            searchInput.value = '';
-            filterStatus.value = '';
-            filterPriority.value = '';
-            taskCards.forEach(card => card.style.display = '');
-        });
-    });
-</script>
+        </script>
 
 <%- include('../layout') %>

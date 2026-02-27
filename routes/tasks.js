@@ -1,71 +1,200 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const db = require('../config/database-sqlite');
 
 // Get all tasks
 router.get('/', async (req, res) => {
     try {
-        const [tasks] = await db.execute('SELECT * FROM tasks ORDER BY created_at DESC');
+        let query = `
+            SELECT t.*, c.name as category_name, c.color as category_color,
+                   GROUP_CONCAT(tg.name) as tags
+            FROM tasks t
+            LEFT JOIN categories c ON t.category_id = c.id
+            LEFT JOIN task_tags tt ON t.id = tt.task_id
+            LEFT JOIN tags tg ON tt.tag_id = tg.id
+        `;
+        const params = [];
+        const whereConditions = [];
+
+        // Filter by status
+        if (req.query.status) {
+            whereConditions.push('t.status = ?');
+            params.push(req.query.status);
+        }
+
+        // Filter by priority
+        if (req.query.priority) {
+            whereConditions.push('t.priority = ?');
+            params.push(req.query.priority);
+        }
+
+        // Filter by category
+        if (req.query.category) {
+            whereConditions.push('t.category_id = ?');
+            params.push(req.query.category);
+        }
+
+        // Filter by tag
+        if (req.query.tag) {
+            whereConditions.push('tg.name = ?');
+            params.push(req.query.tag);
+        }
+
+        // Search by title or description
+        if (req.query.search) {
+            whereConditions.push('(t.title LIKE ? OR t.description LIKE ?)');
+            params.push(`%${req.query.search}%`, `%${req.query.search}%`);
+        }
+
+        // Filter by due date range
+        if (req.query.due_from) {
+            whereConditions.push('t.due_date >= ?');
+            params.push(req.query.due_from);
+        }
+
+        if (req.query.due_to) {
+            whereConditions.push('t.due_date <= ?');
+            params.push(req.query.due_to);
+        }
+
+        // Add WHERE clause if conditions exist
+        if (whereConditions.length > 0) {
+            query += ' WHERE ' + whereConditions.join(' AND ');
+        }
+
+        // Add grouping and ordering
+        query += ' GROUP BY t.id';
+        
+        const sortBy = req.query.sort_by || 't.created_at';
+        const sortOrder = req.query.sort_order || 'DESC';
+        query += ` ORDER BY ${sortBy} ${sortOrder}`;
+
+        const [tasks] = await db.execute(query, params);
+        
+        // Get categories and tags for filters
+        const [categories] = await db.execute('SELECT * FROM categories ORDER BY name');
+        const [tags] = await db.execute('SELECT * FROM tags ORDER BY name');
+        
         res.render('tasks/index', { 
             tasks,
-            path: req.path // Add current path to the template context
+            categories,
+            tags,
+            path: req.path,
+            filters: req.query
         });
     } catch (error) {
+        console.error('Error fetching tasks:', error);
         res.status(500).json({ message: error.message });
     }
 });
 
 // Create task form
-router.get('/new', (req, res) => {
-    res.render('tasks/new', {
-        path: req.path // Add current path to the template context
-    });
+router.get('/new', async (req, res) => {
+    try {
+        const [categories] = await db.execute('SELECT * FROM categories ORDER BY name');
+        const [tags] = await db.execute('SELECT * FROM tags ORDER BY name');
+        res.render('tasks/new', {
+            categories,
+            tags,
+            path: req.path
+        });
+    } catch (error) {
+        console.error('Error loading form data:', error);
+        res.status(500).render('tasks/new', {
+            error: 'Failed to load form data',
+            path: req.path
+        });
+    }
 });
 
 // Create task
 router.post('/', async (req, res) => {
-    const { title, description, due_date, priority } = req.body;
+    const { title, description, due_date, priority, category_id, tags } = req.body;
     
     // Validate required fields
     if (!title || title.trim() === '') {
-        return res.status(400).render('tasks/new', {
-            error: 'Title is required',
-            formData: req.body
-        });
+        try {
+            const [categories] = await db.execute('SELECT * FROM categories ORDER BY name');
+            const [tagList] = await db.execute('SELECT * FROM tags ORDER BY name');
+            return res.status(400).render('tasks/new', {
+                error: 'Title is required',
+                formData: req.body,
+                categories,
+                tags: tagList
+            });
+        } catch (formError) {
+            return res.status(500).render('tasks/new', {
+                error: 'Failed to load form data',
+                formData: req.body
+            });
+        }
     }
 
     try {
-        // Set default values for optional fields
-        const taskData = {
-            title: title.trim(),
-            description: description ? description.trim() : null,
-            due_date: due_date || null,
-            priority: priority || 'medium',
-            status: 'pending',  // Default status
-            updated_at: new Date()
-        };
-
-        await db.execute(
-            'INSERT INTO tasks (title, description, due_date, priority, status, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        // Insert task
+        const [result] = await db.execute(
+            'INSERT INTO tasks (title, description, due_date, priority, category_id, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [
-                taskData.title,
-                taskData.description,
-                taskData.due_date,
-                taskData.priority,
-                taskData.status,
-                taskData.updated_at
+                title.trim(),
+                description ? description.trim() : null,
+                due_date || null,
+                priority || 'medium',
+                category_id || null,
+                'pending',
+                new Date().toISOString()
             ]
         );
+        
+        const taskId = result[0].id;
+        
+        // Handle tags if provided
+        if (tags && Array.isArray(tags)) {
+            for (const tagName of tags) {
+                if (tagName.trim()) {
+                    // Check if tag exists, if not create it
+                    const [existingTag] = await db.execute('SELECT id FROM tags WHERE name = ?', [tagName.trim()]);
+                    let tagId;
+                    
+                    if (existingTag.length > 0) {
+                        tagId = existingTag[0].id;
+                    } else {
+                        const [newTag] = await db.execute(
+                            'INSERT INTO tags (name) VALUES (?)',
+                            [tagName.trim()]
+                        );
+                        tagId = newTag[0].id;
+                    }
+                    
+                    // Link tag to task
+                    await db.execute(
+                        'INSERT INTO task_tags (task_id, tag_id) VALUES (?, ?)',
+                        [taskId, tagId]
+                    );
+                }
+            }
+        }
         
         // Set success message in session
         req.session.success = 'Task created successfully!';
         res.redirect('/tasks');
     } catch (error) {
         console.error('Error creating task:', error);
-        res.status(500).render('tasks/new', {
-            error: 'Failed to create task. Please try again.',
-            formData: req.body
-        });
+        
+        try {
+            const [categories] = await db.execute('SELECT * FROM categories ORDER BY name');
+            const [tagList] = await db.execute('SELECT * FROM tags ORDER BY name');
+            res.status(500).render('tasks/new', {
+                error: 'Failed to create task. Please try again.',
+                formData: req.body,
+                categories,
+                tags: tagList
+            });
+        } catch (formError) {
+            res.status(500).render('tasks/new', {
+                error: 'Failed to create task. Please try again.',
+                formData: req.body
+            });
+        }
     }
 });
 
