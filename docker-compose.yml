@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    image: my-node-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - PORT=${PORT:-3000}
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=mydatabase
+    volumes:
+      - .:/app
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydatabase
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
