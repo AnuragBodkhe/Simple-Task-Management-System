@@ -1,20 +1,16 @@
-# Use the official Node.js image
 FROM node:14
 
-# Set the working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
+# Copy only package files
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies INSIDE container (Linux compatible)
 RUN npm install
 
-# Copy the rest of the app code
+# Now copy rest of code (excluding node_modules)
 COPY . .
 
-# Expose the app port
 EXPOSE 3000
 
-# Start the application
 CMD ["npm", "start"]
