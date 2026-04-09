@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'my-node-app'
-        CONTAINER_NAME = 'task-management-app'
-        APP_PORT = '3000'
+        IMAGE_NAME = "task-management-app"
+        CONTAINER_NAME = "task-container"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -16,36 +16,47 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                bat 'echo Installing dependencies...'
+                bat 'npm install'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'echo Building project...'
+                bat 'npm run build'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -t ${IMAGE_NAME}:latest ."
+                bat 'echo Building Docker image...'
+                bat 'docker build -t %IMAGE_NAME% .'
             }
         }
 
-        stage('Deploy') {
+        stage('Run Container') {
             steps {
-                sh '''
-                    docker-compose down || true
-                    docker-compose up -d
+                bat 'echo Running Docker container...'
+
+                // Stop old container if exists
+                bat '''
+                docker stop %CONTAINER_NAME% || echo Not running
+                docker rm %CONTAINER_NAME% || echo Not exists
                 '''
+
+                // Run new container
+                bat 'docker run -d -p 3000:3000 --name %CONTAINER_NAME% %IMAGE_NAME%'
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully. Application is running.'
+            echo '✅ Pipeline executed successfully!'
         }
         failure {
-            echo 'Pipeline failed. Check the logs for details.'
-            sh 'docker-compose down || true'
-        }
-        always {
-            echo "Build #${BUILD_NUMBER} finished with status: ${currentBuild.currentResult}"
+            echo '❌ Pipeline failed!'
         }
     }
 }
