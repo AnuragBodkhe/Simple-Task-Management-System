@@ -183,7 +183,7 @@ SESSION_SECRET=your_session_secret
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## 🤝 Contribution
+## 🤝 Contributions
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
