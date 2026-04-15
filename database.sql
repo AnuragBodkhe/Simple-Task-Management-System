@@ -60,7 +60,6 @@ INSERT INTO `categories` (`name`, `color`) VALUES
 ('Shopping', '#ffc107'),
 ('Health', '#dc3545'),
 ('Learning', '#6610f2');
-
 -- Sample Tags
 INSERT INTO `tags` (`name`, `color`) VALUES
 ('urgent', '#dc3545'),
