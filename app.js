@@ -26,7 +26,6 @@ app.use('/js', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/
 // View engine
 app.set('view engine', 'ejs');
 app.set('views', './views');
-
 // Routes
 const taskRoutes = require('./routes/tasks');
 app.use('/tasks', taskRoutes);
