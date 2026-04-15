@@ -22,6 +22,14 @@ pipeline {
             }
         }
 
+        // ✅ ADD THIS STAGE (Docker check)
+        stage('Verify Docker') {
+            steps {
+                bat 'docker --version'
+                bat 'docker ps'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 bat 'echo Building Docker image...'
