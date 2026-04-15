@@ -100,6 +100,7 @@ Simple-Task-Management-System/
 └── .gitignore               # Git ignore file
 ```
 
+
 ## 🗄 Database Setup
 
 ### SQLite (Default - No Setup Required)
