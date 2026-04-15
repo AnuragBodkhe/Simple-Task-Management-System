@@ -193,4 +193,4 @@ For support, please open an issue on the GitHub repository.
 
 ---
 
-**Built with ❤️ using Node.js, Express, and modern web technologies**
+***Built with ❤️ using Node.js, Express, and modern web technologies***
