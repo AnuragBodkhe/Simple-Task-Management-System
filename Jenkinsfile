@@ -17,56 +17,47 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat 'echo Installing dependencies...'
-                bat 'npm install'
+                sh 'echo Installing dependencies...'
+                sh 'npm install'
             }
         }
 
-        // ✅ ADD THIS STAGE (Docker check)
+        // ✅ Docker check
         stage('Verify Docker') {
             steps {
-                bat 'docker --version'
-                bat 'docker ps'
+                sh 'docker --version'
+                sh 'docker ps'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                bat 'echo Building Docker image...'
-                bat 'docker build -t %IMAGE_NAME% .'
+                sh 'echo Building Docker image...'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
         stage('Run Container') {
             steps {
-                bat '''
-                echo ================================
-                echo Cleaning old containers...
-                echo ================================
+                sh '''
+                echo "================================"
+                echo "Cleaning old containers..."
+                echo "================================"
 
-                docker stop %CONTAINER_NAME% || echo Not running
-                docker rm %CONTAINER_NAME% || echo Not exists
+                docker stop $CONTAINER_NAME || true
+                docker rm $CONTAINER_NAME || true
 
-                echo ================================
-                echo Killing port %PORT% if in use...
-                echo ================================
+                echo "================================"
+                echo "Starting container..."
+                echo "================================"
 
-                for /f "tokens=5" %%a in ('netstat -ano ^| findstr :%PORT%') do (
-                    echo Killing PID %%a
-                    taskkill /PID %%a /F || echo Already stopped
-                )
+                docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $IMAGE_NAME
 
-                echo ================================
-                echo Starting container...
-                echo ================================
-
-                docker run -d -p %PORT%:%PORT% --name %CONTAINER_NAME% %IMAGE_NAME%
-
-                echo ================================
-                echo Container started successfully!
-                echo Access your app at:
-                echo http://localhost:%PORT%
-                echo ================================
+                echo "================================"
+                echo "Container started successfully!"
+                echo "Access your app at:"
+                echo "http://localhost:$PORT"
+                echo "================================"
                 '''
             }
         }
