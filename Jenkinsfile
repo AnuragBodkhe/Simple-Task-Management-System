@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "task-management-app"
         CONTAINER_NAME = "task-container"
-        PORT = "3000"
+        PORT = "4001"   // ✅ changed from 3000
     }
 
     stages {
@@ -37,7 +37,7 @@ pipeline {
                 docker rm $CONTAINER_NAME || true
 
                 echo "Starting new container..."
-                docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $IMAGE_NAME
+                docker run -d -p $PORT:3000 --name $CONTAINER_NAME $IMAGE_NAME
 
                 echo "App running at: http://localhost:$PORT"
                 '''
