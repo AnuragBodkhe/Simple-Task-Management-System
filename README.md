@@ -11,7 +11,7 @@ A professional, feature-rich task management system built with Node.js, Express,
 - **Due Date Management**: Set and track task deadlines
 
 ### Advanced Features
-- **Categories & Tags**: Organize tasks with color-coded categories and flexible tagging system
+- *Categories & Tags*: Organize tasks with color-coded categories and flexible tagging system
 - **Advanced Filtering**: Multi-criteria filtering by status, priority, category, tags, and date ranges
 - **Search Functionality**: Full-text search across task titles and descriptions
 - **Sorting Options**: Sort by creation date, due date, priority, or title
