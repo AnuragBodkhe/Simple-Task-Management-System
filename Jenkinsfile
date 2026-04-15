@@ -15,14 +15,6 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'echo Installing dependencies...'
-                sh 'npm install'
-            }
-        }
-
-        // ✅ Docker check
         stage('Verify Docker') {
             steps {
                 sh 'docker --version'
@@ -40,24 +32,10 @@ pipeline {
         stage('Run Container') {
             steps {
                 sh '''
-                echo "================================"
-                echo "Cleaning old containers..."
-                echo "================================"
-
                 docker stop $CONTAINER_NAME || true
                 docker rm $CONTAINER_NAME || true
 
-                echo "================================"
-                echo "Starting container..."
-                echo "================================"
-
                 docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $IMAGE_NAME
-
-                echo "================================"
-                echo "Container started successfully!"
-                echo "Access your app at:"
-                echo "http://localhost:$PORT"
-                echo "================================"
                 '''
             }
         }
