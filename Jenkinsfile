@@ -32,10 +32,14 @@ pipeline {
         stage('Run Container') {
             steps {
                 sh '''
+                echo "Stopping old container..."
                 docker stop $CONTAINER_NAME || true
                 docker rm $CONTAINER_NAME || true
 
+                echo "Starting new container..."
                 docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $IMAGE_NAME
+
+                echo "App running at: http://localhost:$PORT"
                 '''
             }
         }
