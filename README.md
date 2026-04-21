@@ -114,7 +114,7 @@ The application automatically uses SQLite for local development. No additional s
    mysql -u username -p database_name < database.sql
    ```
 
-## 📊 API Endpoints
+##  API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
