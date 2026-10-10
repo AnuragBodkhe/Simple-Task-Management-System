@@ -2,7 +2,7 @@
 
 A professional, feature-rich task management system built with Node.js, Express, and modern web technologies. This system demonstrates advanced functionality including categories, tags, comprehensive filtering, and a beautiful responsive UI.
 
-## ✨ Features
+## ✨ Features 
 
 ### Core Functionality
 - **Task Management**: Complete CRUD operations for tasks
